@@ -279,9 +279,11 @@ data: {"message":"Invalid query parameters."}
 
 Clients should always listen for the `error` event. Upon receiving an `error` event, the client should typically display the error message to the user and may consider the current research task terminated unless otherwise specified by the API's behavior.
 
-## Client Code Example
+## Usage Examples
 
-This example demonstrates how to connect to the SSE endpoint using `EventSource` API and listen for the defined event types, specifically focusing on displaying `message` events.
+### SSE API
+
+The following snippet uses `fetchEventSource` to connect to the SSE endpoint and build the report from streaming messages.
 
 ```typescript
 import { fetchEventSource } from "@microsoft/fetch-event-source";
@@ -329,4 +331,48 @@ fetchEventSource("/api/sse", {
     console.log(report);
   },
 });
+```
+
+### Model Context Protocol (MCP)
+
+You can also interact with Deep Research via the MCP server. The example below
+invokes the `deep-research` tool using the Streamable HTTP endpoint.
+
+```typescript
+const res = await fetch("http://localhost:3000/api/mcp", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    jsonrpc: "2.0",
+    id: 1,
+    method: "tools/call",
+    params: {
+      name: "deep-research",
+      arguments: {
+        query: "AI trends for this year",
+        language: "en-US",
+        maxResult: 5,
+      },
+    },
+  }),
+});
+const result = await res.json();
+console.log(result);
+```
+
+If you are configuring a client that supports MCP servers, the configuration
+might look like this:
+
+```json
+{
+  "mcpServers": {
+    "deep-research": {
+      "url": "http://127.0.0.1:3000/api/mcp",
+      "transportType": "streamable-http",
+      "timeout": 600
+    }
+  }
+}
 ```
